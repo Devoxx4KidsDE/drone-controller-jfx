@@ -1,11 +1,18 @@
 package de.devoxx4kids.dronecontroller.jfx;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
+import de.devoxx4kids.dronecontroller.command.animation.SpinJump;
+import de.devoxx4kids.dronecontroller.command.flip.Balance;
+import de.devoxx4kids.dronecontroller.command.flip.DownsideDown;
+import de.devoxx4kids.dronecontroller.command.flip.DownsideUp;
+import de.devoxx4kids.dronecontroller.command.movement.Jump;
 import de.devoxx4kids.dronecontroller.command.multimedia.VideoStreaming;
+import de.devoxx4kids.dronecontroller.jfx.drone.Drone;
+import de.devoxx4kids.dronecontroller.jfx.drone.Sumo;
 import de.devoxx4kids.dronecontroller.jfx.io.ImageConverter;
-import de.devoxx4kids.dronecontroller.listener.multimedia.VideoListener;
 import de.devoxx4kids.dronecontroller.network.DroneConnection;
 import de.devoxx4kids.dronecontroller.network.WirelessLanDroneConnection;
 import javafx.application.Application;
@@ -16,6 +23,8 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import net.java.games.input.Component.Identifier;
+import net.java.games.input.Event;
 
 import static javafx.application.Platform.runLater;
 
@@ -56,15 +65,11 @@ public final class Demonstration extends Application {
             System.exit   (0);
         });
 
-        drone (this::wireless, renderer (destination)).sendCommand (VideoStreaming.enableVideoStreaming ());
-    }
+        Drone drone = drone ();
+              drone.start ();
+              drone.stream (renderer (destination));
 
-    private DroneConnection drone (Supplier<DroneConnection> connection, Consumer<byte[]> video) {
-        DroneConnection drone = connection.get ();
-                        drone.addEventListener (VideoListener.videoListener (video));
-                        drone.connect ();
-
-        return drone;
+        Runtime.getRuntime ().addShutdownHook (new Thread (drone::shutdown));
     }
 
     private Consumer<byte[]> renderer (WritableImage destination) {
@@ -76,6 +81,24 @@ public final class Demonstration extends Application {
                 () -> destination.getPixelWriter ().setPixels (0, 0, width, height, PixelFormat.getByteRgbInstance (), bitmap, offset, width * 3)
 
         ), "bmp", capacity);
+    }
+
+    private Map<Identifier, Consumer<Event>> commands (DroneConnection connection) {
+            Map<Identifier, Consumer<Event>> controls = new HashMap<> ();
+                                                       controls.put (Identifier.Button._0, ev -> connection.sendCommand (SpinJump.spinJump ()));
+                                                       controls.put (Identifier.Button._1, ev -> connection.sendCommand (Jump.jump (Jump.Type.Long)));
+                                                       controls.put (Identifier.Button._2, ev -> connection.sendCommand (Jump.jump (Jump.Type.High)));
+                                                       controls.put (Identifier.Button._3, ev -> connection.sendCommand (Balance.balance ()));
+                                                       controls.put (Identifier.Button._4, ev -> connection.sendCommand (DownsideDown.downsideDown ()));
+                                                       controls.put (Identifier.Button._5, ev -> connection.sendCommand (DownsideUp.downsideUp ()));
+                                                       controls.put (Identifier.Button._6, ev -> connection.sendCommand (VideoStreaming.enableVideoStreaming ()));
+                                                       controls.put (Identifier.Button._7, ev -> connection.sendCommand (VideoStreaming.disableVideoStreaming ()));
+
+        return controls;
+    }
+
+    private Drone drone () {
+        return new Sumo (wireless (), this::commands);
     }
 
     private DroneConnection wireless () {
