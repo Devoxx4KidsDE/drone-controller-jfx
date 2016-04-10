@@ -15,6 +15,8 @@ import net.java.games.input.ControllerEnvironment;
 import net.java.games.input.Event;
 import net.java.games.input.EventQueue;
 
+import static de.devoxx4kids.dronecontroller.jfx.utility.Lambda.trylog;
+
 /**
  * Date: 10.04.2016
  * Time: 12:21
@@ -44,8 +46,8 @@ public final class Piloting {
                 while (events.getNextEvent (event = new Event ())) {
                     Component component;
 
-                                           component = event.getComponent ();
-                    controls.getOrDefault (component.getIdentifier (), ev -> {}).accept (event);
+                                                   component = event.getComponent ();
+                    trylog (controls.getOrDefault (component.getIdentifier (), ev -> {})).accept (event);
                 }
             }
 
