@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -41,10 +42,17 @@ public class ImageConverterTest {
 
     @Test
     public void convertJpg2BmpMany () throws IOException, URISyntaxException {
-        ImageConverter converter = new ImageConverter (assertImage (isBMP), "bmp");
+        ImageConverter converter = new ImageConverter (assertImage (isBMP, assertSize (400 * 600 * 3 + 54)), "bmp");
 
         converter.accept (resource ("/image/sample.jpg"));
         converter.accept (resource ("/image/sample.jpg"));
+    }
+
+    private BiFunction<ImageReader, byte[], Void> assertSize (int length) {
+        return (reader, bytes) -> {
+            assertEquals (bytes.length, length);
+            return null;
+        };
     }
 
     private BiFunction<ImageReader, byte[], Void> assertType (String type) {
@@ -58,7 +66,8 @@ public class ImageConverterTest {
         };
     }
 
-    private Consumer<byte[]> assertImage (BiFunction<ImageReader, byte[], ?> assertion) {
+    @SafeVarargs
+    private final Consumer<byte[]> assertImage (BiFunction<ImageReader, byte[], ?> ... assertions) {
         return bytes -> {
             try (ImageInputStream iis = ImageIO.createImageInputStream (new ByteArrayInputStream (bytes))) {
                 Iterator<ImageReader> readers;
@@ -70,7 +79,7 @@ public class ImageConverterTest {
 
                 StreamSupport.stream (iterable.spliterator (), false)
                                  .findFirst ()
-                                     .ifPresent (reader -> assertion.apply (reader, bytes));
+                                     .ifPresent (reader -> Arrays.stream (assertions).forEach (fun -> fun.apply (reader, bytes)));
             } catch (IOException            e) {
                 throw new RuntimeException (e);
             }
