@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 import net.java.games.input.Component;
 import net.java.games.input.Controller;
@@ -15,6 +15,7 @@ import net.java.games.input.ControllerEnvironment;
 import net.java.games.input.Event;
 import net.java.games.input.EventQueue;
 
+import static de.devoxx4kids.dronecontroller.jfx.utility.Lambda.supply;
 import static de.devoxx4kids.dronecontroller.jfx.utility.Lambda.trylog;
 
 /**
@@ -30,19 +31,19 @@ public final class Piloting {
         ScheduledExecutorService single;
 
         single = Executors.newSingleThreadScheduledExecutor ();
-        single.scheduleAtFixedRate (new Processing (locator, controls), 0, 50, TimeUnit.MILLISECONDS);
+        single.scheduleAtFixedRate (new Processing (supply (ControllerEnvironment.getDefaultEnvironment ()::getControllers, locator), controls), 0, 50, TimeUnit.MILLISECONDS);
 
         return single;
     }
 
     final static class Processing implements Runnable {
 
-        private final Predicate<Controller> locator;
+        private final Supplier<Controller>                       controller;
         private final Map<Component.Identifier, Consumer<Event>> controls;
 
-        Processing (Predicate<Controller> locator, Map<Component.Identifier, Consumer<Event>> controls) {
-            this.locator  = locator;
-            this.controls = controls;
+        Processing (Supplier<Controller> controller, Map<Component.Identifier, Consumer<Event>> controls) {
+            this.controller = controller;
+            this.controls   = controls;
         }
 
         @Override
@@ -64,8 +65,8 @@ public final class Piloting {
             }
         }
 
-        private Optional<Controller> first () {
-            return Stream.of (ControllerEnvironment.getDefaultEnvironment ().getControllers ()).filter (locator).findFirst ();
+        private    Optional<Controller> first () {
+            return Optional.ofNullable (controller.get ());
         }
 
     }
