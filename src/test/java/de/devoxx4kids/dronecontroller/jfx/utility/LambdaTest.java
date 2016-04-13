@@ -50,6 +50,13 @@ public class LambdaTest {
     }
 
     @Test
+    public void supplyDefault () throws Exception {
+        Integer[] values = {0, 1};
+
+        assertEquals ((int) Lambda.supply (() -> values, t -> t == 2, () -> 2).get (), 2);
+    }
+
+    @Test
     public void supplyUnknown () throws Exception {
         Integer[] values = {0, 1};
 

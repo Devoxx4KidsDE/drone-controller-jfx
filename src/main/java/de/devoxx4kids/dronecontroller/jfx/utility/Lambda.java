@@ -32,10 +32,14 @@ public final class Lambda {
     }
 
     public final static <T> Supplier<T> supply (Supplier<T[]> controllers, Predicate<? super T> locator) {
+        return                          supply (              controllers,                      locator, () -> null);
+    }
+
+    public final static <T> Supplier<T> supply (Supplier<T[]> controllers, Predicate<? super T> locator, Supplier<T> defaultvalue) {
         return () -> Stream.generate (controllers).limit (1).filter (Objects::nonNull)
                            .flatMap  (Arrays::stream)
                                .filter (locator)
-                                   .findFirst ().orElse (null);
+                                   .findFirst ().orElseGet (defaultvalue);
     }
 
 }
