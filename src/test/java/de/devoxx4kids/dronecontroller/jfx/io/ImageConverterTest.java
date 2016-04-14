@@ -50,7 +50,7 @@ public class ImageConverterTest {
 
     private BiFunction<ImageReader, byte[], Void> assertSize (int length) {
         return (reader, bytes) -> {
-            assertEquals (bytes.length, length);
+            assertEquals (length, bytes.length);
             return null;
         };
     }
@@ -58,7 +58,7 @@ public class ImageConverterTest {
     private BiFunction<ImageReader, byte[], Void> assertType (String type) {
         return (reader, bytes) -> {
             try {
-                assertEquals (reader.getFormatName (), type);
+                assertEquals (type, reader.getFormatName ());
             } catch (IOException e) {
                 e.printStackTrace ();
             }
@@ -72,8 +72,8 @@ public class ImageConverterTest {
             try (ImageInputStream iis = ImageIO.createImageInputStream (new ByteArrayInputStream (bytes))) {
                 Iterator<ImageReader> readers;
 
-                              readers = ImageIO.getImageReaders (iis);
-                assertEquals (readers.hasNext (), true);
+                                    readers = ImageIO.getImageReaders (iis);
+                assertEquals (true, readers.hasNext ());
 
                 Iterable<ImageReader> iterable = () -> readers;
 
