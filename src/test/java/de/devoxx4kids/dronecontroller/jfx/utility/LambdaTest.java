@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -39,6 +40,34 @@ public class LambdaTest {
         Lambda.trylog (spy).accept (42);
 
         verify (spy, times (1)).accept (42);
+    }
+
+    @Test
+    public void supply () throws Exception {
+        Integer[] values = {0, 1, 2, 3, 4};
+
+        assertEquals (2, (int) Lambda.supply (() -> values, t -> t == 2).get ());
+    }
+
+    @Test
+    public void supplyUnknown () throws Exception {
+        Integer[] values = {0, 1};
+
+        assertEquals (null, Lambda.supply (() -> values, t -> t == 2).get ());
+    }
+
+    @Test
+    public void supplyNull () throws Exception {
+        Integer[] values = null;
+
+        assertEquals (null, Lambda.supply (() -> values, t -> t == 2).get ());
+    }
+
+    @Test
+    public void supplyEmpty () throws Exception {
+        Integer[] values = {};
+
+        assertEquals (null, Lambda.supply (() -> values, t -> t == 2).get ());
     }
 
 }
