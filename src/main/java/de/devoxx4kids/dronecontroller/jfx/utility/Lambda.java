@@ -16,13 +16,12 @@ import org.slf4j.LoggerFactory;
 public final class Lambda {
 
     public final static <T> Consumer<T> trylog (Consumer<T> consumer) {
-        Logger logger = LoggerFactory.getLogger (MethodHandles.lookup ().lookupClass ());
-
         return (item) -> {
             try {
                 consumer.accept (item);
             } catch (RuntimeException e) {
-                logger.error         (e.getMessage (), e);
+                Logger logger = LoggerFactory.getLogger (MethodHandles.lookup ().lookupClass ());
+                       logger.error (e.getMessage (), e);
             }
         };
     }
