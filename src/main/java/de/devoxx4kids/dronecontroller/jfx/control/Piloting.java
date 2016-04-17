@@ -30,34 +30,44 @@ public final class Piloting {
         ScheduledExecutorService single;
 
         single = Executors.newSingleThreadScheduledExecutor ();
-        single.scheduleAtFixedRate (new Runnable () {
-
-            @Override
-            public void run () {
-                first ().ifPresent (this::notify);
-            }
-
-            private void notify (Controller controller) {
-                if (!                       controller.poll ()) return;
-
-                EventQueue events = controller.getEventQueue ();
-                Event event;
-
-                while (events.getNextEvent (event = new Event ())) {
-                    Component component;
-
-                                                   component = event.getComponent ();
-                    trylog (controls.getOrDefault (component.getIdentifier (), ev -> {})).accept (event);
-                }
-            }
-
-            private Optional<Controller> first () {
-                return Stream.of (ControllerEnvironment.getDefaultEnvironment ().getControllers ()).filter (locator).findFirst ();
-            }
-
-        }, 0, 50, TimeUnit.MILLISECONDS);
+        single.scheduleAtFixedRate (new Processing (locator, controls), 0, 50, TimeUnit.MILLISECONDS);
 
         return single;
+    }
+
+    final static class Processing implements Runnable {
+
+        private final Predicate<Controller> locator;
+        private final Map<Component.Identifier, Consumer<Event>> controls;
+
+        Processing (Predicate<Controller> locator, Map<Component.Identifier, Consumer<Event>> controls) {
+            this.locator  = locator;
+            this.controls = controls;
+        }
+
+        @Override
+        public void run () {
+            first ().ifPresent (this::notify);
+        }
+
+        private void notify (Controller controller) {
+            if (!                       controller.poll ()) return;
+
+            EventQueue events = controller.getEventQueue ();
+            Event event;
+
+            while (events.getNextEvent (event = new Event ())) {
+                Component component;
+
+                                               component = event.getComponent ();
+                trylog (controls.getOrDefault (component.getIdentifier (), ev -> {})).accept (event);
+            }
+        }
+
+        private Optional<Controller> first () {
+            return Stream.of (ControllerEnvironment.getDefaultEnvironment ().getControllers ()).filter (locator).findFirst ();
+        }
+
     }
 
 }
