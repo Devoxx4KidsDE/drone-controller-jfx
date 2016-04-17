@@ -27,11 +27,17 @@ import static de.devoxx4kids.dronecontroller.jfx.utility.Lambda.trylog;
  */
 public final class Piloting {
 
-    public final static ScheduledExecutorService create (Predicate<Controller> locator, Map<Component.Identifier, Consumer<Event>> controls) {
+    private final ControllerEnvironment environment;
+
+    public Piloting (ControllerEnvironment environment) {
+        this.environment = environment;
+    }
+
+    public final ScheduledExecutorService create (Predicate<Controller> locator, Map<Component.Identifier, Consumer<Event>> controls) {
         ScheduledExecutorService single;
 
         single = Executors.newSingleThreadScheduledExecutor ();
-        single.scheduleAtFixedRate (new Processing (supply (ControllerEnvironment.getDefaultEnvironment ()::getControllers, locator), controls), 0, 50, TimeUnit.MILLISECONDS);
+        single.scheduleAtFixedRate (new Processing (supply (environment::getControllers, locator), controls), 0, 50, TimeUnit.MILLISECONDS);
 
         return single;
     }
