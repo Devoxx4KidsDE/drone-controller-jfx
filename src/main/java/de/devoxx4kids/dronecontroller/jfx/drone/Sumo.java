@@ -107,7 +107,7 @@ public final class Sumo implements Drone {
             private boolean halt = false;
 
             @Override
-            public Observable<Pcmd> call (Pcmd pcmd) {
+            public synchronized Observable<Pcmd> call (Pcmd pcmd) {
                 if (halt && pcmd.isHalt ()) return Observable.empty ();
                 else
                     halt  = pcmd.isHalt ();
