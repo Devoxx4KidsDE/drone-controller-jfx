@@ -16,7 +16,6 @@ import de.devoxx4kids.dronecontroller.network.DroneConnection;
 import javafx.geometry.Point2D;
 import net.java.games.input.Component.Identifier;
 import net.java.games.input.Controller;
-import net.java.games.input.ControllerEnvironment;
 import net.java.games.input.Event;
 import rx.Observable;
 import rx.functions.Func1;
@@ -35,12 +34,15 @@ import static java.lang.Math.abs;
  */
 public final class Sumo implements Drone {
 
+    private final Piloting piloting;
+
     private final          DroneConnection                                    connection;
     private final Function<DroneConnection, Map<Identifier, Consumer<Event>>> userspace;
 
     private       ScheduledExecutorService executor;
 
-    public Sumo (DroneConnection connection, Function<DroneConnection, Map<Identifier, Consumer<Event>>> userspace) {
+    public Sumo (Piloting piloting, DroneConnection connection, Function<DroneConnection, Map<Identifier, Consumer<Event>>> userspace) {
+        this.piloting   = piloting;
         this.connection = connection;
         this.userspace  = userspace;
     }
@@ -52,7 +54,7 @@ public final class Sumo implements Drone {
         Map<Identifier, Consumer<Event>> controls = movement (100, 90);
                                          controls.putAll (userspace.apply (connection));
 
-        executor = new Piloting (ControllerEnvironment.getDefaultEnvironment ()).create (controller -> controller.getType () == Controller.Type.GAMEPAD, controls);
+        executor = piloting.create (controller -> controller.getType () == Controller.Type.GAMEPAD, controls);
     }
 
     @Override

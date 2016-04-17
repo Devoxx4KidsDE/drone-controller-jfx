@@ -10,6 +10,7 @@ import de.devoxx4kids.dronecontroller.command.flip.DownsideDown;
 import de.devoxx4kids.dronecontroller.command.flip.DownsideUp;
 import de.devoxx4kids.dronecontroller.command.movement.Jump;
 import de.devoxx4kids.dronecontroller.command.multimedia.VideoStreaming;
+import de.devoxx4kids.dronecontroller.jfx.control.Piloting;
 import de.devoxx4kids.dronecontroller.jfx.drone.Drone;
 import de.devoxx4kids.dronecontroller.jfx.drone.Sumo;
 import de.devoxx4kids.dronecontroller.jfx.io.ImageConverter;
@@ -24,6 +25,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import net.java.games.input.Component.Identifier;
+import net.java.games.input.ControllerEnvironment;
 import net.java.games.input.Event;
 
 import static javafx.application.Platform.runLater;
@@ -98,11 +100,15 @@ public final class Demonstration extends Application {
     }
 
     private Drone drone () {
-        return new Sumo (wireless (), this::commands);
+        return new Sumo (piloting (), wireless (), this::commands);
     }
 
     private DroneConnection wireless () {
         return new WirelessLanDroneConnection (ip, port, wlan);
+    }
+
+    private Piloting piloting () {
+        return new Piloting (ControllerEnvironment.getDefaultEnvironment ());
     }
 
     public static void main (String[] args) {
